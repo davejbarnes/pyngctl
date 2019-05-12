@@ -6,7 +6,7 @@ validate_args = djargs.parse(config.parameters)
 
 if not validate_args[1]:
     print("Invalid parameters specified:")
-    for error in sorted(validate_args[2]):
+    for error in validate_args[2]:
         print("\t",error)
     exit(1)
 

@@ -69,18 +69,29 @@ def parse(parameters: dict) -> [dict, bool, list]:
         for delim in parameters[current_switch]["delimiter"]:
             current_value = current_value.replace(delim, "¬")
 
+        pattern = re.compile(parameters[current_switch]["regex"])
+        for value in current_value.split("¬"):
+            pattern_match = pattern.match(str(value))
+            try:
+                if pattern_match.group() != value:
+                    error = current_switch + " '" + value + "' : Pattern partially matches - check your regex?"
+                    error_list.append(error)
+                    valid_parameters = False
+            except:
+                error = current_switch + " '" + value + "' : Pattern does not match"
+                error_list.append(error)
+                valid_parameters = False
+
         for value in current_value.split("¬"):
             if not validate_type(value, parameters[current_switch]["type"]):
                 error = current_switch + ' with value ' + value + ' is invalid'
                 error_list.append(error)
                 valid_parameters = False
-                continue
 
         if accepted_parameters[current_switch] != [] and parameters[current_switch]["unique"]:
             error = current_switch + " can only be specified once"
             error_list.append(error)
             valid_parameters = False
-            continue
 
         for exclusive in parameters[current_switch]["exclusive_of"]:
             if accepted_parameters[exclusive]:
@@ -89,22 +100,6 @@ def parse(parameters: dict) -> [dict, bool, list]:
                 valid_parameters = False
             else:
                 accepted_parameters.pop(exclusive)
-
-        pattern = re.compile(parameters[current_switch]["regex"])
-
-        for value in current_value.split("¬"):
-            pattern_match = pattern.match(str(value))
-            try:
-                if pattern_match.group() != value:
-                    error = current_switch + " '" + value + "' : Pattern partially matches - check your regex?"
-                    error_list.append(error)
-                    valid_parameters = False
-                    continue
-            except:
-                error = current_switch + " '" + value + "' : Pattern does not match"
-                error_list.append(error)
-                valid_parameters = False
-                continue
 
         for value in current_value.split("¬"):
             if value not in accepted_parameters[current_switch]:
