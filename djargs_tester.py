@@ -1,17 +1,21 @@
 #!/usr/bin/python
 
-import djargs, djargs_config as config
+import djargs as args
 
-validate_args = djargs.parse(config.parameters)
-
-if not validate_args[1]:
+if not args.valid:
     print("Invalid parameters specified:")
-    for error in validate_args[2]:
+    for error in sorted(args.errors):
         print("\t",error)
     exit(1)
 
-print("All is good! We got:\n")
+print("Everything is working!")
+for k,v in enumerate(args.args.items()):
+    print(k,v)
 
-for k, v in sorted(validate_args[0].items()):
-    if k[0] == '-':
-        print(k, "-->", v)
+if args.rules_passed and args.djargs_config.enable_rules:
+    print("\nRules passed")
+if not args.rules_passed and args.djargs_config.enable_rules:
+    print("\nRules failed")
+    for errors in args.rule_errors:
+        for error in errors:
+            print(error)

@@ -1,4 +1,5 @@
-import sys, re, subprocess
+
+import sys, re, subprocess, conf.djargs_config as djargs_config
 from collections import defaultdict
 
 def validate_type(pvalue: str, ptype: str) -> bool:
@@ -28,7 +29,7 @@ def validate_type(pvalue: str, ptype: str) -> bool:
     return False
 
 
-def listtostring(inlist: list, join_string: str) -> str:
+def custom_join(inlist: list, join_string: str) -> str:
     out_string = ''
     for item in inlist:
         if out_string == '':
@@ -48,11 +49,6 @@ def parse(parameters: dict) -> [dict, bool, list]:
         if index == 0:
             continue
 
-        if arg[0] != '-':
-            error = arg + " is not a valid switch"
-            error_list.append(error)
-            valid_parameters = False
-            continue
         try:
             current_switch = arg[0:arg.index("=")]
             current_value = arg[arg.index("=")+1:]
@@ -125,7 +121,7 @@ def parse(parameters: dict) -> [dict, bool, list]:
         if not found_requirements:
             valid_parameters = False
             if parameters[switch]["required_unless"]:
-                error = switch + " (" + parameters[switch]["description"] + ") is required unless " + listtostring(parameters[switch]["required_unless"], 'or') + " is specified"
+                error = switch + " (" + parameters[switch]["description"] + ") is required unless " + custom_join(parameters[switch]["required_unless"], 'or') + " is specified"
             else:
                 error = switch + " (" + parameters[switch]["description"] + ") is required"
             error_list.append(error)
@@ -142,7 +138,71 @@ def parse(parameters: dict) -> [dict, bool, list]:
 
         if not found_dependencies:
                 valid_parameters = False
-                error = switch + " (" + parameters[switch]["description"] + ") depends on " + listtostring(parameters[switch]["depends"], 'and') + " also being specified"
+                error = switch + " (" + parameters[switch]["description"] + ") depends on " + custom_join(parameters[switch]["depends"], 'and') + " also being specified"
                 error_list.append(error)
 
     return accepted_parameters, valid_parameters, error_list
+
+
+def str_to_timestamp(datestring: str) -> int:
+    timestamp = subprocess.check_output(['date', '-d ' + datestring, '+%s'], stderr=subprocess.STDOUT)[0:-1]
+    return timestamp
+
+
+def check_rules(switch, rules):
+    new_rules = []
+    errors = []
+    for rule in rules:
+        regex = "-[a-zA-Z]{1,}"
+        pattern = re.compile(regex)
+        matches = re.findall(pattern, rule)
+        if matches == []:
+            errors.append("INFO: Didn't match any parameters for rule '" + rule + "'")
+        for match in matches:
+            try:
+                test = args[match][0]
+                rule = rule.replace(match, str(test))
+            except:
+                errors.append("Can't find rule parameter " + match + " for rule '" + switch + " " + rule + "'")
+        rule = str(args[switch][0]) + " " + rule
+        new_rules.append(rule)
+    
+    if new_rules == []:
+        return True, errors
+    for rule in new_rules:
+        #print("Testing rule", rule)
+        try:
+            test = eval(rule)
+            #print("Test result", test)
+            if not test:
+                #print("Logging fail")
+                errors.append("Failed rule:\t '" + switch + "\t" + rule + "'")
+        except:
+            errors.append("Unable to process rule '" + rule + "'")
+            test = False
+    return test, errors
+
+
+__dj_args__ = parse(djargs_config.parameters)
+
+if djargs_config.date_convert:
+    for switch in __dj_args__[0]:
+        if djargs_config.parameters[switch]["type"] == "date":
+            utime = int(str_to_timestamp(__dj_args__[0][switch][0]))
+            __dj_args__[0][switch][0] = utime
+
+
+args = dict(__dj_args__[0])
+valid = bool(__dj_args__[1])
+errors = list(__dj_args__[2])
+rules_passed = True
+rule_errors = []
+
+if djargs_config.enable_rules and valid:
+    for switch in args:
+        switch_rules = djargs_config.parameters[switch]["rules"]
+        if switch_rules != []:
+            rulecheck = check_rules(switch, switch_rules)
+            if not rulecheck[0]:
+                rules_passed = False
+            rule_errors.append(rulecheck[1])

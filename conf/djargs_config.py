@@ -1,5 +1,4 @@
-# configuration file for djargs
-# define the allowed parameters
+"""configuration file required by djargs, defines the allowed parameters"""
 #
 # the key is the parameter, eg -p
 # valid 'fields' are:
@@ -14,6 +13,7 @@
 #   exclusive_of : lits, parameters *any* of which must not also be specified, optional
 #   unique : bool, whether the parameter must be specified at most once. optional (default False)
 #   help : string, text used in extended help REQUIRED
+#   rules : list of strings, each of which will be evaluated as ("parameter value" rule), eg "< -a" would indicate the value of parameter should be less than the value of -a
 
 
 #   the simplest parameter takes this form:
@@ -29,13 +29,22 @@
 # default regex for date type parameters. setting "regex" field overrides for an individual parameter
 # combinations of "yyyy-mm-dd", "dd/mm/yyy" hh:mm", "9am", "9pm" (space between date and time)
 # "last friday 12am", "11am tomorrow", "10:30 next weds" etc
-regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]) ([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]))|(([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]) (20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]))|(20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9])|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])|(([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?(( )?next |( )?last |( )?Next |( )?Last )?(monday( )?|Monday( )?|mon( )?|Mon( )?|tuesday( )?|Tuesday( )?|tue( )?|tues( )?|Tue( )?|Tues( )?|wednesday( )?|Wednesday( )?|wed( )?|Wed( )?|thursday( )?|Thursday( )?|thu( )?|thur( )?|Thu( )?|Thur( )?|friday( )?|Friday( )?|fri( )?|Fri( )?|saturday( )?|Saturday( )?|sat( )?|Sat( )?|sunday( )?|Sunday( )?|sun( )?|Sun( )?|week( )?)|(tomorrow|Tomorrow)( )?)([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?"
+regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]) ([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]))|(([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]) (20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]))|(20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9])|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])|(([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?(( )?next |( )?last |( )?Next |( )?Last )?(monday( )?|Monday( )?|mon( )?|Mon( )?|tuesday( )?|Tuesday( )?|tue( )?|tues( )?|Tue( )?|Tues( )?|wednesday( )?|Wednesday( )?|wed( )?|Wed( )?|thursday( )?|Thursday( )?|thu( )?|thur( )?|Thu( )?|Thur( )?|friday( )?|Friday( )?|fri( )?|Fri( )?|saturday( )?|Saturday( )?|sat( )?|Sat( )?|sunday( )?|Sunday( )?|sun( )?|Sun( )?|week( )?)|([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?( ?tomorrow| ?Tomorrow)( )?)([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?"
+
+# IMPORTANT:    enabling parameter rules is a potential security issue
+#               rules make us of eval(), use only if you can trust this config file
+#               "rules": ['rm -rf ~']" or similar is not desirable!
+#               use: "< -a" would indicate the value of parameter should be less than the value of -a
+enable_rules = True
+
+# Enabling date_convert will update validated parmeters of type "date" to a unix timestamp
+date_convert = True
 
 
 parameters={
     "-h": {
         "description": "hostname",
-        "regex": "^(dc1|dc2).*\d{2,}$",
+        "regex": "^(dc1|dc2)[a-zA-Z0-9\-]*\d{2,}$",
         "type": "string",
         "required_unless": ['-H'],
         "delimiter": [',', ' '],
@@ -45,19 +54,22 @@ parameters={
         "description": "hostgroup",
         "regex": "[a-zA-Z\-_]+$",
         "type": "string",
+        "delimiter": [',', ' '],
         "required_unless": ['-h'],
         "help": "a valid hostgroup which exists in the Nagios instance"
     },
     "-s": {
         "description": "service description",
-        "regex": "[a-zA-Z\-_]+$",
+        "regex": "[a-zA-Z0-9\-_]+$",
         "type": "string",
+        "delimiter": [',', ' '],
         "help": "the service description for a service which exists in the Nagios instance"
     },
     "-b": {
         "description": "start date/time",
         "type": "date",
         "unique": True,
+        "rules": ['< -e'],
         "help": "for adding a downtime, the start date/time of the entry"
     },
     "-e": {
@@ -66,6 +78,7 @@ parameters={
         "unique": True,
         "exclusive_of": ['-d', '-D'],
         "required_unless": ['-D', '-d'],
+        "rules": ['> -b'],
         "help": "for adding a downtime, the end date/time of the entry"
     },
     "-d": {
@@ -74,6 +87,7 @@ parameters={
         "unique": True,
         "exclusive_of": ['-e'],
         "required_unless": ['-e', '-D'],
+        "rules": ['> 1'],
         "help": "for adding a downtime, the duration of the entry in minutes"
     },
     "-D": {
@@ -82,6 +96,7 @@ parameters={
         "unique": True,
         "exclusive_of": ['-e'],
         "required_unless": ['-e', '-d'],
+        "rules": ['> 0', '< 199'],
         "help": "for adding a downtime, the duration of the entry in hours"
     },
     "-c": {
@@ -95,6 +110,25 @@ parameters={
         "description": "quiet",
         "unique": True,
         "help": "set output to minimum"
+    },
+    "-mode": {
+        "description": "mode",
+        "type": "string",
+        "regex": "down|ack|dn|en|dc|ec",
+        "unique": True,
+        "help": "set mode"
+    },
+    "down": {
+        "description": "ack mode",
+        "unique": True,
+        "exclusive_of": ['ack', 'dn', 'en', 'dc', 'ec'],
+        "help": "set mode to downtime"
+    },
+    "ack": {
+        "description": "ack mode",
+        "unique": True,
+        "exclusive_of": ['down', 'dn', 'en', 'dc', 'ec'],
+        "help": "set mode to acknowledge"
     },
 }
 
@@ -150,3 +184,8 @@ for part in parameters:
             parameters[part]["regex"] = regex_date
         else:
             parameters[part]["regex"] = ".*"
+
+    try:
+        test = parameters[part]["rules"]
+    except:
+        parameters[part]["rules"] = []
