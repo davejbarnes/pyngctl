@@ -47,6 +47,7 @@ parameters={
         "regex": "^(dc1|dc2)[a-zA-Z0-9\-]*\d{2,}$",
         "type": "string",
         "required_unless": ['-H'],
+        # commnent
         "delimiter": [',', ' '],
         "help": "a valid hostname which exists in the Nagios instance"
     },
@@ -96,7 +97,7 @@ parameters={
         "unique": True,
         "exclusive_of": ['-e'],
         "required_unless": ['-e', '-d'],
-        "rules": ['> 0', '< 199'],
+        "rules": ['> 0', '< 99'],
         "help": "for adding a downtime, the duration of the entry in hours"
     },
     "-c": {

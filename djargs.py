@@ -201,7 +201,8 @@ rule_errors = []
 if djargs_config.enable_rules and valid:
     for switch in args:
         switch_rules = djargs_config.parameters[switch]["rules"]
-        if switch_rules != []:
+        switch_type = djargs_config.parameters[switch]["type"]
+        if switch_rules != [] and switch_type != "string":
             rulecheck = check_rules(switch, switch_rules)
             if not rulecheck[0]:
                 rules_passed = False
