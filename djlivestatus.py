@@ -1,6 +1,6 @@
 """library for interacting with Nagios / MK Livestatus"""
 
-import djlivestatus_config as config, socket, re
+import conf.djlivestatus_config as config, socket, re
 from time import time
 
 def livestatus_query(query: list = ["GET status"]) -> str:      # done?
