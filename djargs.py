@@ -157,7 +157,8 @@ def check_rules(switch, rules):
         pattern = re.compile(regex)
         matches = re.findall(pattern, rule)
         if matches == []:
-            errors.append("INFO: Didn't match any parameters for rule '" + rule + "'")
+            pass
+            #errors.append("INFO: Didn't match any parameters for rule '" + rule + "'")
         for match in matches:
             try:
                 test = args[match][0]
