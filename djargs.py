@@ -161,11 +161,11 @@ def check_rules(switch, rules):
             #errors.append("INFO: Didn't match any parameters for rule '" + rule + "'")
         for match in matches:
             try:
-                test = args[match][0]
+                test = validargs[match][0]
                 rule = rule.replace(match, str(test))
             except:
                 errors.append("Can't find rule parameter " + match + " for rule '" + switch + " " + rule + "'")
-        rule = str(args[switch][0]) + " " + rule
+        rule = str(validargs[switch][0]) + " " + rule
         new_rules.append(rule)
     
     if new_rules == []:
@@ -193,14 +193,14 @@ if djargs_config.date_convert:
             __dj_args__[0][switch][0] = utime
 
 
-args = dict(__dj_args__[0])
+validargs = dict(__dj_args__[0])
 valid = bool(__dj_args__[1])
 errors = list(__dj_args__[2])
 rules_passed = True
 rule_errors = []
 
 if djargs_config.enable_rules and valid:
-    for switch in args:
+    for switch in validargs:
         switch_rules = djargs_config.parameters[switch]["rules"]
         switch_type = djargs_config.parameters[switch]["type"]
         if switch_rules != [] and switch_type != "string":

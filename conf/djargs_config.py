@@ -29,7 +29,7 @@
 # default regex for date type parameters. setting "regex" field overrides for an individual parameter
 # combinations of "yyyy-mm-dd", "dd/mm/yyy" hh:mm", "9am", "9pm" (space between date and time)
 # "last friday 12am", "11am tomorrow", "10:30 next weds" etc
-regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]) ([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]))|(([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]) (20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]))|(20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9])|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])|(([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?(( )?next |( )?last |( )?Next |( )?Last )?(monday( )?|Monday( )?|mon( )?|Mon( )?|tuesday( )?|Tuesday( )?|tue( )?|tues( )?|Tue( )?|Tues( )?|wednesday( )?|Wednesday( )?|wed( )?|Wed( )?|thursday( )?|Thursday( )?|thu( )?|thur( )?|Thu( )?|Thur( )?|friday( )?|Friday( )?|fri( )?|Fri( )?|saturday( )?|Saturday( )?|sat( )?|Sat( )?|sunday( )?|Sunday( )?|sun( )?|Sun( )?|week( )?)|([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?( ?tomorrow| ?Tomorrow)( )?)([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?"
+regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]) ([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]))|(([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]) (20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]))|(20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9])|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])|(([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?(( )?next |( )?last |( )?Next |( )?Last )?(monday( )?|Monday( )?|mon( )?|Mon( )?|tuesday( )?|Tuesday( )?|tue( )?|tues( )?|Tue( )?|Tues( )?|wednesday( )?|Wednesday( )?|wed( )?|Wed( )?|thursday( )?|Thursday( )?|thu( )?|thur( )?|Thu( )?|Thur( )?|friday( )?|Friday( )?|fri( )?|Fri( )?|saturday( )?|Saturday( )?|sat( )?|Sat( )?|sunday( )?|Sunday( )?|sun( )?|Sun( )?|week( )?)|([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?( ?tomorrow| ?Tomorrow| ?today| ?Today)( )?)([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?"
 
 # IMPORTANT:    enabling parameter rules is a potential security issue
 #               rules make us of eval(), use only if you can trust this config file
@@ -71,14 +71,15 @@ parameters={
         "type": "date",
         "unique": True,
         "rules": ['< -e'],
+        "exclusive_of": ["ack", "dn", "en", "dc", "ec"],
         "help": "for adding a downtime, the start date/time of the entry"
     },
     "-e": {
         "description": "end date/time",
         "type": "date",
         "unique": True,
-        "exclusive_of": ['-d', '-D'],
-        "required_unless": ['-D', '-d'],
+        "exclusive_of": ['-d', '-D', "ack", "dn", "en", "dc", "ec"],
+        "required_unless": ['-D', '-d', "ack", "dn", "en", "dc", "ec"],
         "rules": ['> -b'],
         "help": "for adding a downtime, the end date/time of the entry"
     },
@@ -86,8 +87,8 @@ parameters={
         "description": "duration minutes",
         "type": "float",
         "unique": True,
-        "exclusive_of": ['-e'],
-        "required_unless": ['-e', '-D'],
+        "exclusive_of": ['-e', "ack", "dn", "en", "dc", "ec"],
+        "required_unless": ['-e', '-D', "ack", "dn", "en", "dc", "ec"],
         "rules": ['> 1'],
         "help": "for adding a downtime, the duration of the entry in minutes"
     },
@@ -95,8 +96,8 @@ parameters={
         "description": "duration hours",
         "type": "float",
         "unique": True,
-        "exclusive_of": ['-e'],
-        "required_unless": ['-e', '-d'],
+        "exclusive_of": ['-e', "ack", "dn", "en", "dc", "ec"],
+        "required_unless": ['-e', '-d', "ack", "dn", "en", "dc", "ec"],
         "rules": ['> 0', '< 99'],
         "help": "for adding a downtime, the duration of the entry in hours"
     },
@@ -104,7 +105,7 @@ parameters={
         "description": "comment",
         "type": "string",
         "unique": True,
-        "required": True,
+        "required_unless": ["dn", "en", "dc", "ec"],
         "help": "a comment is required when adding downtime entries or acknowledgements"
     },
     "-q": {
@@ -112,23 +113,48 @@ parameters={
         "unique": True,
         "help": "set output to minimum"
     },
-    "-mode": {
-        "description": "mode",
-        "type": "string",
-        "regex": "down|ack|dn|en|dc|ec",
-        "unique": True,
-        "help": "set mode"
-    },
+    # "-mode": {
+    #     "description": "mode",
+    #     "type": "string",
+    #     "regex": "down|ack|dn|en|dc|ec",
+    #     "unique": True,
+    #     "exclusive_of": ["ack", "dn", "en", "dc", "ec", "down"],
+    #     "help": "set mode"
+    # },
     "down": {
-        "description": "ack mode",
+        "description": "down mode",
         "unique": True,
-        "exclusive_of": ['ack', 'dn', 'en', 'dc', 'ec'],
+        "exclusive_of": ["ack", "dn", "en", "dc", "ec", "-mode"],
         "help": "set mode to downtime"
     },
     "ack": {
         "description": "ack mode",
         "unique": True,
-        "exclusive_of": ['down', 'dn', 'en', 'dc', 'ec'],
+        "exclusive_of": ["down", "dn", "en", "dc", "ec", "-mode"],
+        "help": "set mode to acknowledge"
+    },
+    "dn": {
+        "description": "disable notifications mode",
+        "unique": True,
+        "exclusive_of": ["down", "ack", "en", "dc", "ec", "-mode"],
+        "help": "set mode to acknowledge"
+    },
+    "en": {
+        "description": "enable notifications mode",
+        "unique": True,
+        "exclusive_of": ["down", "dn", "ack", "dc", "ec", "-mode"],
+        "help": "set mode to acknowledge"
+    },
+    "dc": {
+        "description": "disable checks mode",
+        "unique": True,
+        "exclusive_of": ["down", "dn", "en", "ack", "ec", "-mode"],
+        "help": "set mode to acknowledge"
+    },
+    "ec": {
+        "description": "enable checks mode",
+        "unique": True,
+        "exclusive_of": ["down", "dn", "en", "dc", "ack", "-mode"],
         "help": "set mode to acknowledge"
     },
 }

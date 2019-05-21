@@ -3,7 +3,7 @@
 import conf.djlivestatus_config as config, socket, re
 from time import time
 
-def livestatus_query(query: list = ["GET status"]) -> str:      # done?
+def livestatus_query(query: list = ["GET status"]) -> str:
     """
     Executes a Livestatus query and returns the result
 
@@ -30,8 +30,10 @@ def livestatus_query(query: list = ["GET status"]) -> str:      # done?
 
 
 def nagios_command(command: str, confirm_query: list = [], expect_regex: str = ".*",
-                    retry_command: int = 3, retry_confirm: int = 3) -> [bool, str]:         # done?
+                    retry_command: int = 3, retry_confirm: int = 3) -> [bool, str]:
     """Wraps and executes a raw Nagios external command, optionally confirming the result"""
+    # provide command as "NAGIOS_EXTERNAL_COMMAND;param1;param2;etc"
+
     utimestamp = str(int(time.time()))
     ls_command="COMMAND [" + str(utimestamp) + "] "
     ls_command += command
@@ -61,7 +63,7 @@ def nagios_command(command: str, confirm_query: list = [], expect_regex: str = "
     return False, "command_failed"
 
 
-def hosts_inhostgroups(hostgroups: list) -> list:           # done?
+def hosts_inhostgroups(hostgroups: list) -> list:
     """Returns a list of hosts in the given hostgroup"""
     query = []
     query.append("GET hostsbygroup")
@@ -77,6 +79,7 @@ def hosts_inhostgroups(hostgroups: list) -> list:           # done?
 
 
 def host_exists(hostname: str) -> bool:
+    """Returns a bool indicating whether a hostname exists"""
     query = []
     query.append("GET hosts")
     query.append("Filter: name = " + hostname)
@@ -88,6 +91,7 @@ def host_exists(hostname: str) -> bool:
 
 
 def hostservice_exists(hostname: str, service: str) -> bool:
+    """Returns a bool indicating whether a service on a hostname exists"""
     query = []
     query.append("GET services")
     query.append("Filter: host_name = " + hostname)
@@ -100,6 +104,7 @@ def hostservice_exists(hostname: str, service: str) -> bool:
 
 
 def host_problem_exists(hostname: str, state: int) -> bool:
+    """Returns a bool indicating whether a hostname is in a problem state"""
     query = []
     query.append("GET hosts")
     query.append("Filter: name = " + hostname)
@@ -112,6 +117,7 @@ def host_problem_exists(hostname: str, state: int) -> bool:
 
 
 def hostservice_problem_exists(hostname: str, service: str, state: int) -> bool:
+    """Returns a bool indicating whether a service on a hostname is in a problem state"""
     query = []
     query.append("GET services")
     query.append("Filter: host_name = " + hostname)
@@ -125,7 +131,7 @@ def hostservice_problem_exists(hostname: str, service: str, state: int) -> bool:
 
 
 def downtime_hosts(hostnames: list, begintime: int, endtime: int, comment: str,
-                    username: str = config.current_user) -> [bool, dict]:       # done?
+                    username: str = config.current_user) -> [bool, dict]:
     """Add downtime for host(s), returns bool indicating if all were
     successful and dict of 'hostname' and their entry IDs or status message"""
     results = {}
@@ -182,6 +188,7 @@ def downtime_hostsservices(hostnames: list, services: list, begintime: int, endt
 
 
 def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify: bool = False) -> bool:
+    """Acknowledge a host problem, optionally set 'sticky' and whether to notify"""
     results = {}
     all_good = True
     for hostname in hostnames:
@@ -204,6 +211,7 @@ def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify
 
 
 def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, sticky: bool = False, notify: bool = False) -> bool:
+    """Acknowledge a service problem on a host, optionally set 'sticky' and whether to notify"""
     results = {}
     all_good = True
     for hostname in hostnames:
@@ -229,41 +237,188 @@ def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, stic
 
 
 def dis_hostscheck(hostname: list) -> bool:
+    """Disable checks for a host"""
     results = {}
     all_good = True
     for hostname in hostnames:
         hostname = str(hostname)
-        command = ""
-        # DISABLE_HOST_CHECK;$targethost\n
+        command = "DISABLE_HOST_CHECK;" + hostname
+        confirm = []
+        confirm.append("GET hosts")
+        confirm.append("Filter: name = " + hostname)
+        confirm.append("Filter: checks_enabled = 0")
+        confirm.append("Columns: checks_enabled")
+        expect = "0"
+
+        result = nagios_command(command, confirm, expect)
+        if not result[0]:
+            all_good = False
+        results[hostname] = result[1]
+
+    return all_good, results
 
 
 def dis_hostsservicescheck(hostname: list, service: list) -> bool:
+    """Disable checks for a service on a host"""
     results = {}
     all_good = True
     for hostname in hostnames:
         hostname = str(hostname)
         for service in services:
             service = str(service)
-            command = ""
-            # DISABLE_SVC_CHECK;$targethost;$service\n
+            command = "DISABLE_SVC_CHECK;" + hostname + ";" + service
+            confirm = []
+            confirm.append("GET services")
+            confirm.append("Filter: host_name = " + hostname)
+            confirm.append("Filter: description = " + service)
+            confirm.append("Filter: checks_enabled = 0")
+            confirm.append("Columns: checks_enabled")
+            expect = "0"
+
+            result = nagios_command(command, confirm, expect)
+            if not result[0]:
+                all_good = False
+            results[hostname] = result[1]
+
+    return all_good, results
 
 
 def dis_hostsnotifications(hostname: list) -> bool:
+    """Disable notifications for a host"""
     results = {}
     all_good = True
     for hostname in hostnames:
         hostname = str(hostname)
-        command = ""
-        # DISABLE_HOST_NOTIFICATIONS;$targethost\n
+        command = "DISABLE_HOST_NOTIFICATIONS;" + hostname
+        confirm = []
+        confirm.append("GET hosts")
+        confirm.append("Filter: name = " + hostname)
+        confirm.append("Filter: notifications_enabled = 0")
+        confirm.append("Columns: notifications_enabled")
+        expect = "0"
+
+        result = nagios_command(command, confirm, expect)
+        if not result[0]:
+            all_good = False
+        results[hostname] = result[1]
+
+    return all_good, results
 
 
-def dis_hostsservicescheck(hostname: list, service: list) -> bool:
+def dis_hostsservicesnotifications(hostname: list, service: list) -> bool:
+    """Disable notifications for a service on a host"""
     results = {}
     all_good = True
     for hostname in hostnames:
         hostname = str(hostname)
         for service in services:
             service = str(service)
-            command = ""
-            # DISABLE_SVC_NOTIFICATIONS;$targethost;$service\n
+            command = "DISABLE_SVC_NOTIFICATIONS;" + hostname + ";" + service
+            confirm = []
+            confirm.append("GET services")
+            confirm.append("Filter: host_name = " + hostname)
+            confirm.append("Filter: description = " + service)
+            confirm.append("Filter: notifications_enabled = 0")
+            confirm.append("Columns: notifications_enabled")
+            expect = "0"
 
+            result = nagios_command(command, confirm, expect)
+            if not result[0]:
+                all_good = False
+            results[hostname] = result[1]
+
+    return all_good, results
+
+
+def en_hostscheck(hostname: list) -> bool:
+    """Enable checks for a host"""
+    results = {}
+    all_good = True
+    for hostname in hostnames:
+        hostname = str(hostname)
+        command = "ENABLE_HOST_CHECK;" + hostname
+        confirm = []
+        confirm.append("GET hosts")
+        confirm.append("Filter: name = " + hostname)
+        confirm.append("Filter: checks_enabled = 1")
+        confirm.append("Columns: checks_enabled")
+        expect = "1"
+
+        result = nagios_command(command, confirm, expect)
+        if not result[0]:
+            all_good = False
+        results[hostname] = result[1]
+
+    return all_good, results
+
+
+def en_hostsservicescheck(hostname: list, service: list) -> bool:
+    """Enable checks for a service on a host"""
+    results = {}
+    all_good = True
+    for hostname in hostnames:
+        hostname = str(hostname)
+        for service in services:
+            service = str(service)
+            command = "ENABLE_SVC_CHECK;" + hostname + ";" + service
+            confirm = []
+            confirm.append("GET services")
+            confirm.append("Filter: host_name = " + hostname)
+            confirm.append("Filter: description = " + service)
+            confirm.append("Filter: checks_enabled = 1")
+            confirm.append("Columns: checks_enabled")
+            expect = "1"
+
+            result = nagios_command(command, confirm, expect)
+            if not result[0]:
+                all_good = False
+            results[hostname] = result[1]
+
+    return all_good, results
+
+
+def en_hostsnotifications(hostname: list) -> bool:
+    """Enable notifications for a host"""
+    results = {}
+    all_good = True
+    for hostname in hostnames:
+        hostname = str(hostname)
+        command = "ENABLE_HOST_NOTIFICATIONS;" + hostname
+        confirm = []
+        confirm.append("GET hosts")
+        confirm.append("Filter: name = " + hostname)
+        confirm.append("Filter: notifications_enabled = 1")
+        confirm.append("Columns: notifications_enabled")
+        expect = "1"
+
+        result = nagios_command(command, confirm, expect)
+        if not result[0]:
+            all_good = False
+        results[hostname] = result[1]
+
+    return all_good, results
+
+
+def en_hostsservicesnotifications(hostname: list, service: list) -> bool:
+    """Enable notifications for a service on a host"""
+    results = {}
+    all_good = True
+    for hostname in hostnames:
+        hostname = str(hostname)
+        for service in services:
+            service = str(service)
+            command = "ENABLE_SVC_NOTIFICATIONS;" + hostname + ";" + service
+            confirm = []
+            confirm.append("GET services")
+            confirm.append("Filter: host_name = " + hostname)
+            confirm.append("Filter: description = " + service)
+            confirm.append("Filter: notifications_enabled = 1")
+            confirm.append("Columns: notifications_enabled")
+            expect = "1"
+
+            result = nagios_command(command, confirm, expect)
+            if not result[0]:
+                all_good = False
+            results[hostname] = result[1]
+
+    return all_good, results
