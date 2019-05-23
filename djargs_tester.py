@@ -2,15 +2,20 @@
 
 import djargs as args, djlivestatus as ls, subprocess
 
+debug = True
+ls.debug = debug
+
 if not args.valid:
     print("Invalid parameters specified:")
     for error in sorted(args.errors):
         print("\t",error)
     exit(1)
 
+
 print("Everything is working!")
 for k,v in enumerate(args.validargs.items()):
     print(k,v)
+
 
 if args.rules_passed and args.djargs_config.enable_rules:
     print("\nRules passed")
@@ -23,13 +28,22 @@ if not args.rules_passed and args.djargs_config.enable_rules:
 
 def find_mode() -> str:
     """Figure out which mode has been specified"""
-    #if args.validargs["-mode"]:
-    #    return args.validargs["-mode"][0]
     modes = ["down", "ack", "dn", "en", "dc", "ec"]
     for arg in args.validargs:
         if str(arg) in modes:
             return arg
-    # default to down mode
     return "down"
 
-print("Mode is", find_mode())
+print("Mode is", find_mode(),"\n")
+
+ls.debug_force_fail = False
+ls.test_mode = True
+
+result = ls.dis_hostscheck(["dc01web01"])
+print("Result: ",result,"\n")
+
+result = ls.en_hostscheck(["dc01web01"])
+print("Result: ",result,"\n")
+
+result = ls.downtime_hosts(["dc01web01"], 1558681200, 1558682200, "Testing")
+print("Result: ",result,"\n")

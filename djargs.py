@@ -127,14 +127,13 @@ def parse(parameters: dict) -> [dict, bool, list]:
             error_list.append(error)
 
     for switch in parameters:
+        found_dependencies = True
         if parameters[switch]["depends"]:
             dependency_found = True
             for dependency in parameters[switch]["depends"]:
                 if dependency not in accepted_parameters:
                     dependency_found = False
                 found_dependencies = dependency_found
-        else:
-            found_dependencies = True
 
         if not found_dependencies:
                 valid_parameters = False

@@ -13,7 +13,7 @@
 #   exclusive_of : lits, parameters *any* of which must not also be specified, optional
 #   unique : bool, whether the parameter must be specified at most once. optional (default False)
 #   help : string, text used in extended help REQUIRED
-#   rules : list of strings, each of which will be evaluated as ("parameter value" rule), eg "< -a" would indicate the value of parameter should be less than the value of -a
+#   rules : list of strings, each of which will be evaluated as ("parameter value" rule), optional. See below.
 
 
 #   the simplest parameter takes this form:
@@ -35,6 +35,7 @@ regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/
 #               rules make us of eval(), use only if you can trust this config file
 #               "rules": ['rm -rf ~']" or similar is not desirable!
 #               use: "< -a" would indicate the value of parameter should be less than the value of -a
+#               rules can only be applied to parameters of type int, float or date
 enable_rules = True
 
 # Enabling date_convert will update validated parmeters of type "date" to a unix timestamp
@@ -47,7 +48,6 @@ parameters={
         "regex": "^(dc1|dc2)[a-zA-Z0-9\-]*\d{2,}$",
         "type": "string",
         "required_unless": ['-H'],
-        # commnent
         "delimiter": [',', ' '],
         "help": "a valid hostname which exists in the Nagios instance"
     },
@@ -113,48 +113,40 @@ parameters={
         "unique": True,
         "help": "set output to minimum"
     },
-    # "-mode": {
-    #     "description": "mode",
-    #     "type": "string",
-    #     "regex": "down|ack|dn|en|dc|ec",
-    #     "unique": True,
-    #     "exclusive_of": ["ack", "dn", "en", "dc", "ec", "down"],
-    #     "help": "set mode"
-    # },
     "down": {
         "description": "down mode",
         "unique": True,
-        "exclusive_of": ["ack", "dn", "en", "dc", "ec", "-mode"],
+        "exclusive_of": ["ack", "dn", "en", "dc", "ec"],
         "help": "set mode to downtime"
     },
     "ack": {
         "description": "ack mode",
         "unique": True,
-        "exclusive_of": ["down", "dn", "en", "dc", "ec", "-mode"],
+        "exclusive_of": ["down", "dn", "en", "dc", "ec"],
         "help": "set mode to acknowledge"
     },
     "dn": {
         "description": "disable notifications mode",
         "unique": True,
-        "exclusive_of": ["down", "ack", "en", "dc", "ec", "-mode"],
+        "exclusive_of": ["down", "ack", "en", "dc", "ec"],
         "help": "set mode to acknowledge"
     },
     "en": {
         "description": "enable notifications mode",
         "unique": True,
-        "exclusive_of": ["down", "dn", "ack", "dc", "ec", "-mode"],
+        "exclusive_of": ["down", "dn", "ack", "dc", "ec"],
         "help": "set mode to acknowledge"
     },
     "dc": {
         "description": "disable checks mode",
         "unique": True,
-        "exclusive_of": ["down", "dn", "en", "ack", "ec", "-mode"],
+        "exclusive_of": ["down", "dn", "en", "ack", "ec"],
         "help": "set mode to acknowledge"
     },
     "ec": {
         "description": "enable checks mode",
         "unique": True,
-        "exclusive_of": ["down", "dn", "en", "dc", "ack", "-mode"],
+        "exclusive_of": ["down", "dn", "en", "dc", "ack"],
         "help": "set mode to acknowledge"
     },
 }
