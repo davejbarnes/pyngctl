@@ -76,7 +76,7 @@ def nagios_command(command: str, confirm_query: list = [], expect_regex: str = "
                 pass
             confirm_count += 1
         command_count += 1
-    if debug and test_mode:
+    if debug or test_mode:
         if debug_force_fail:
             debug_query = "not_expected"
         debug_query = "expected_result"
@@ -144,7 +144,7 @@ def hostservice_exists(hostname: str, service: str) -> bool:
     return False
 
 
-def host_problem_exists(hostname: str, state: int) -> bool:
+def host_problem_exists(hostname: str) -> bool:
     """Returns a bool indicating whether a hostname is in a problem state"""
     query = []
     query.append("GET hosts")
@@ -161,7 +161,7 @@ def host_problem_exists(hostname: str, state: int) -> bool:
     return False
 
 
-def hostservice_problem_exists(hostname: str, service: str, state: int) -> bool:
+def hostservice_problem_exists(hostname: str, service: str) -> bool:
     """Returns a bool indicating whether a service on a hostname is in a problem state"""
     query = []
     query.append("GET services")
@@ -235,19 +235,20 @@ def downtime_hostsservices(hostnames: list, services: list, begintime: int, endt
                     result = nagios_command(command, confirm, expect)
                     if not result[0]:
                         all_good = False
-                    results[hostname + "_" + service] = result[1]
+                    results[hostname + ";" + service] = result[1]
                 else:
                     all_good = False
-                    results[hostname + "_" + service] = "host_service_not_found"
+                    results[hostname + ";" + service] = "host_service_not_found"
         else:
             all_good = False
-            results[hostname + "_" + service] = "host_for_service_not_found"
+            results[hostname + ";failed_host_check_before_services"] = "host_for_services_not_found"
 
 
     return all_good, results
 
 
-def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify: bool = False) -> [bool, dict]:
+def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify: bool = False,
+                    username: str = config.current_user) -> [bool, dict]:
     """Acknowledge a host problem, optionally set 'sticky' and whether to notify"""
     results = {}
     all_good = True
@@ -261,7 +262,8 @@ def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify
                 confirm.append("GET hosts")
                 confirm.append("Filter: name = " + hostname)
                 confirm.append("Filter: state >= 1")
-                coTruenfirm.append("Columns: name")
+                confirm.append("Filter: acknowledged = 1")
+                confirm.append("Columns: name")
                 expect = hostname
                 result = nagios_command(command, confirm, expect)
                 if not result[0]:
@@ -277,7 +279,8 @@ def ack_hostsproblem(hostnames: list, comment: str, sticky: bool = False, notify
     return all_good, results
 
 
-def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, sticky: bool = False, notify: bool = False) -> [bool, dict]:
+def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, sticky: bool = False, 
+                            notify: bool = False, username: str = config.current_user) -> [bool, dict]:
     """Acknowledge a service problem on a host, optionally set 'sticky' and whether to notify"""
     results = {}
     all_good = True
@@ -285,7 +288,8 @@ def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, stic
         hostname = str(hostname)
         if host_exists(hostname):
             for service in services:
-                if hostservice_exists(host_exists, service):
+                service = str(service)
+                if hostservice_exists(hostname, service):
                     if hostservice_problem_exists(hostname, service):
                         service = str(service)
                         command = "ACKNOWLEDGE_SVC_PROBLEM;" + hostname + ";" + service + ";" + str(int(sticky)) + ";"
@@ -295,21 +299,22 @@ def ack_hostsservicesproblem(hostnames: list, services: list, comment: str, stic
                         confirm.append("Filter: host_name = " + hostname)
                         confirm.append("Filter: description = " + service)
                         confirm.append("Filter: state >= 1")
+                        confirm.append("Filter: acknowledged = 1")
                         confirm.append("Columns: name")
                         expect = hostname
                         result = nagios_command(command, confirm, expect)
                         if not result[0]:
                             all_good = False
-                        results[hostname] = result[1]
+                        results[hostname + ";" + service] = result[1]
                     else:
                         all_good = False
-                        results[hostname] = "host_service_problem_not_found"
+                        results[hostname + ";" + service] = "host_service_problem_not_found"
                 else:
                     all_good = False
-                    results[hostname] = "service_for_host_service_problem_not_found"
+                    results[hostname + ";" + service] = "service_for_host_service_problem_not_found"
         else:
             all_good = False
-            results[hostname] = "host_for_host_service_problem_not_found"
+            results[hostname + ";failed_host_check_before_services"] = "host_for_host_service_problem_not_found"
 
     return all_good, results
 
@@ -339,7 +344,7 @@ def dis_hostscheck(hostnames: list) -> [bool, dict]:
     return all_good, results
 
 
-def dis_hostsservicescheck(hostnames: list, service: list) -> [bool, dict]:
+def dis_hostsservicescheck(hostnames: list, services: list) -> [bool, dict]:
     """Disable checks for a service on a host"""
     results = {}
     all_good = True
@@ -360,12 +365,13 @@ def dis_hostsservicescheck(hostnames: list, service: list) -> [bool, dict]:
                     result = nagios_command(command, confirm, expect)
                     if not result[0]:
                         all_good = False
-                    results[hostname] = result[1]
+                    results[hostname + ";" + service] = result[1]
                 else:
                     all_good = False
-                    results[hostname] = "service_for_disable_service_check_not_found"
-        all_good = False
-        results[hostname] = "host_for_disable_service_check_not_found"
+                    results[hostname + ";" + service] = "service_for_disable_service_check_not_found"
+        else:
+            all_good = False
+            results[hostname + ";failed_host_check_before_services"] = "host_for_disable_service_check_not_found"
 
     return all_good, results
 
@@ -376,34 +382,11 @@ def dis_hostsnotifications(hostnames: list) -> [bool, dict]:
     all_good = True
     for hostname in hostnames:
         hostname = str(hostname)
-        command = "DISABLE_HOST_NOTIFICATIONS;" + hostname
-        confirm = []
-        confirm.append("GET hosts")
-        confirm.append("Filter: name = " + hostname)
-        confirm.append("Filter: notifications_enabled = 0")
-        confirm.append("Columns: notifications_enabled")
-        expect = "0"
-        result = nagios_command(command, confirm, expect)
-        if not result[0]:
-            all_good = False
-        results[hostname] = result[1]
-
-    return all_good, results
-
-
-def dis_hostsservicesnotifications(hostnames: list, service: list) -> [bool, dict]:
-    """Disable notifications for a service on a host"""
-    results = {}
-    all_good = True
-    for hostname in hostnames:
-        hostname = str(hostname)
-        for service in services:
-            service = str(service)
-            command = "DISABLE_SVC_NOTIFICATIONS;" + hostname + ";" + service
+        if host_exists(hostname):
+            command = "DISABLE_HOST_NOTIFICATIONS;" + hostname
             confirm = []
-            confirm.append("GET services")
-            confirm.append("Filter: host_name = " + hostname)
-            confirm.append("Filter: description = " + service)
+            confirm.append("GET hosts")
+            confirm.append("Filter: name = " + hostname)
             confirm.append("Filter: notifications_enabled = 0")
             confirm.append("Columns: notifications_enabled")
             expect = "0"
@@ -411,6 +394,41 @@ def dis_hostsservicesnotifications(hostnames: list, service: list) -> [bool, dic
             if not result[0]:
                 all_good = False
             results[hostname] = result[1]
+        else:
+            all_good = False
+            results[hostname] = "host_for_disable_host_notifications_not_found"
+
+    return all_good, results
+
+
+def dis_hostsservicesnotifications(hostnames: list, services: list) -> [bool, dict]:
+    """Disable notifications for a service on a host"""
+    results = {}
+    all_good = True
+    for hostname in hostnames:
+        hostname = str(hostname)
+        if host_exists(hostname):
+            for service in services:
+                service = str(service)
+                if hostservice_exists(hostname, service):
+                    command = "DISABLE_SVC_NOTIFICATIONS;" + hostname + ";" + service
+                    confirm = []
+                    confirm.append("GET services")
+                    confirm.append("Filter: host_name = " + hostname)
+                    confirm.append("Filter: description = " + service)
+                    confirm.append("Filter: notifications_enabled = 0")
+                    confirm.append("Columns: notifications_enabled")
+                    expect = "0"
+                    result = nagios_command(command, confirm, expect)
+                    if not result[0]:
+                        all_good = False
+                    results[hostname + ";" + service] = result[1]
+                else:
+                    all_good = False
+                    results[hostname + ";" + service] = "service_for_disable_service_notifications_not_found"
+        else:
+            all_good = False
+            results[hostname + ";failed_host_check_before_services"] = "host_for_disable_service_notifications_not_found"
 
     return all_good, results
 
@@ -440,7 +458,7 @@ def en_hostscheck(hostnames: list) -> [bool, dict]:
     return all_good, results
 
 
-def en_hostsservicescheck(hostnames: list, service: list) -> [bool, dict]:
+def en_hostsservicescheck(hostnames: list, services: list) -> [bool, dict]:
     """Enable checks for a service on a host"""
     results = {}
     all_good = True
@@ -461,13 +479,13 @@ def en_hostsservicescheck(hostnames: list, service: list) -> [bool, dict]:
                     result = nagios_command(command, confirm, expect)
                     if not result[0]:
                         all_good = False
-                    results[hostname] = result[1]
+                    results[hostname + ";" + service] = result[1]
                 else:
                     all_good = False
-                    results[hostname] = "service_for_enable_service_check_not_found"
+                    results[hostname + ";" + service] = "service_for_enable_service_check_not_found"
         else:
             all_good = False
-            results[hostname] = "host_for_enable_service_check_not_found"
+            results[hostname + ";failed_host_check_before_services"] = "host_for_enable_service_check_not_found"
 
     return all_good, results
 
@@ -497,7 +515,7 @@ def en_hostsnotifications(hostnames: list) -> [bool, dict]:
     return all_good, results
 
 
-def en_hostsservicesnotifications(hostnames: list, service: list) -> [bool, dict]:
+def en_hostsservicesnotifications(hostnames: list, services: list) -> [bool, dict]:
     """Enable notifications for a service on a host"""
     results = {}
     all_good = True
@@ -518,12 +536,12 @@ def en_hostsservicesnotifications(hostnames: list, service: list) -> [bool, dict
                     result = nagios_command(command, confirm, expect)
                     if not result[0]:
                         all_good = False
-                    results[hostname] = result[1]
+                    results[hostname + ";" + service] = result[1]
                 else:
                     all_good = False
-                    results[hostname] = "service_for_enable_service_notifications_not_found"
+                    results[hostname + ";" + service] = "service_for_enable_service_notifications_not_found"
         else:
             all_good = False
-            results[hostname] = "host_for_enable_service_notifications_not_found"
+            results[hostname + ";failed_host_check_before_services"] = "host_for_enable_service_notifications_not_found"
 
     return all_good, results
