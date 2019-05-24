@@ -1,8 +1,16 @@
 # pyngctl
-Rewrite of bash script ngctl
+### Rewrite of bash script ngctl
 
-This is my latest project - learning Python by solving a problem I already solved in a bash script
+It has three parts:
 
-Yes, I know argparse exists.  I'm learning by doing something familiar in a new language.
+* A module to parse command line arguments which can validate input in various ways
+  
+* A module which provides functions to interact with Nagios and Livestatus broker*
+  
+* A Python script which uses both to provide a command line tool for Nagios and Livestatus
 
-I'm trying to write "idiomatic" Python with varying degrees of success :)
+All parts are agnostic of each other
+
+\* https://mathias-kettner.com
+
+\**Yes, I know argparse exists. I'm learning by doing something familiar in a new language :) .
