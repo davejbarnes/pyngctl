@@ -9,7 +9,7 @@ This should allow the consumer to assume that valid parameters have been provide
 
 ## Conguration file
 ### Configuration Options
-`enable_rules` enables processing parameter rules
-`date_convert` enables converting date/time parameters to unix timestamps during processing
+* `enable_rules` enables processing parameter rules
+* `date_convert` enables converting date/time parameters to unix timestamps during processing
 
 ### Specifying parameters
