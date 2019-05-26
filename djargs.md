@@ -44,22 +44,30 @@ parameters = {
 ##### Parameter properties
 * `description`
 
-   * description of the parameter
-   * a string
+   * string, description of the parameter
    * required
 * `help`
 
-   * help to be displayed for the parameter
-   * a string
+   * string, help to be displayed for the parameter
    * required
 * `type`
 
    * parameter type, one of: string, int, float, date, none
    * default: none
 * `regex`
+
+   * regex pattern which must be matched
+   * default '.*'
+
 * `delimiter`
+
+   * list of allowed delimiters
 * `unique`
+
+   * bool, default False
 * `required`
+
+   * bool, default False
 * `required_unless`
 * `exclusive_of`
 * `depends`
