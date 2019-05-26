@@ -15,17 +15,22 @@ When imported it will import the configuration file and process the command line
 * `date_convert = bool` enables converting date/time parameters to unix timestamps during processing
 
 #### Specifying parameters
-Parameters are specified as a Dictionary of Dictionaries, where the primary Dictionary's key is a parameter, and the secondary dictionary has keys specifying the parameter properties.
+Parameters can be any form, such as '`-t`' or '`t`', but to provide a value they must be expressed as '`-t=value`' or '`t=value`'.  More specifically '=' is the delimiter between a parameter and it's value. '`-t value`' etc is not valid.
+
+Acceptable parameters are defined as a Dictionary of Dictionaries, where the primary Dictionary's key is a parameter, and the secondary dictionary has keys specifying the parameter properties.
 
 Example:
 ```python
 parameters = {
-    "-t" : {
-        "description": "time",
+    "-s" : {
+        "description": "start time",
         "type": "date",
-        "help": "The time to specify"
+        "help": "The time to start doing the thing"
+    },
+    "-e" : {
+        "description": "end time",
+        "type": "date",
+        "help": "The time to stop doing the thing"
     }
 }
 ```
-Parameters can be any form, such as '`-t`' or '`t`', but to provide a value they must be expressed as '`-t=value`' or '`t=value`'.  More specifically '=' is the delimiter between a parameter and it's value. '`-t value`' etc is not valid.
-
