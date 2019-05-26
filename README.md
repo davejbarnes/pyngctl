@@ -9,7 +9,7 @@ It has three parts:
   
 * A Python script which uses both to provide a command line tool for Nagios and Livestatus
 
-All parts are agnostic of each other
+Both modules are agnostic of each other
 
 \* https://mathias-kettner.com
 
