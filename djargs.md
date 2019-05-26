@@ -22,9 +22,10 @@ Example:
 parameters = {
     "-t" : {
         "description": "time",
-        "type": "date"
+        "type": "date",
+        "help": "The time to specify"
     }
 }
 ```
-Parameters can be any form, such as '`-t`' or '`t`', but to provide a value they must be expressed as '`-t=value`' or '`t=value`'. '`-t value`' etc is not valid.
+Parameters can be any form, such as '`-t`' or '`t`', but to provide a value they must be expressed as '`-t=value`' or '`t=value`'.  More specifically '=' is the delimiter between a parameter and it's value. '`-t value`' etc is not valid.
 
