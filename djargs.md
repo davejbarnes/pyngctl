@@ -26,4 +26,5 @@ parameters = {
     }
 }
 ```
+Parameters can be any form, such as `-t` or `t`, but to provide a value they must be expressed as `-t=value` or `t=value`. `-t value` etc is not valid.
 
