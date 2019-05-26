@@ -41,13 +41,14 @@ regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/
 enable_rules = True
 
 # Enabling date_convert will update validated parmeters of type "date" to a unix timestamp
+# Must be on to use rules with date/time parameters
 date_convert = True
 
 
 parameters={
     "-h": {
         "description": "hostname",
-        "regex": "^(dc1|dc2)[a-zA-Z0-9\-]*\d{2,}$",
+        "regex": "^(dc1|dc2)[a-zA-Z0-9\-]*", #\d{2,}$
         "type": "string",
         "required_unless": ['-H'],
         "delimiter": [',', ' '],
@@ -164,6 +165,33 @@ parameters={
         "unique": True,
         "help": "notify on acknowledge",
         "depends": ["ack"]
+    },
+    "-x": {
+        "description": "range start",
+        "type": "int",
+        "rules": ["< -y"],
+        "unique": True,
+        "help": "start number for a range of hostnames",
+        "depends": ["-y"],
+        "exclusive_of": ["-H"]
+    },
+    "-y": {
+        "description": "range end",
+        "type": "int",
+        "rules": ["> -x"],
+        "unique": True,
+        "help": "end number for a range of hostnames",
+        "depends": ["-x"],
+        "exclusive_of": ["-H"]
+    },
+    "-p": {
+        "description": "parity",
+        "type": "string",
+        "regex": "(odd|even)",
+        "depends": ["-x", "-y"],
+        "exclusive_of": ["-H"],
+        "unique": True,
+        "help": "parity for a range, odd or even"
     }
 }
 

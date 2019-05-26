@@ -29,12 +29,12 @@ def validate_type(pvalue: str, ptype: str) -> bool:
     return False
 
 
-def dedupe_list(input_list: list) -> list:
-    output_list = []
-    for item in sorted(input_list):
-        if item not in output_list:
-            output_list.append(item)
-    return output_list
+# def dedupe_list(input_list: list) -> list:
+#     output_list = []
+#     for item in sorted(input_list):
+#         if item not in output_list:
+#             output_list.append(item)
+#     return output_list
 
 
 def custom_join(inlist: list, join_string: str) -> str:
@@ -102,16 +102,18 @@ def parse(parameters: dict) -> [dict, bool, list]:
             if value not in accepted_parameters[current_switch]:
                 accepted_parameters[current_switch].append(value)
 
-    # not sure why this matches 1 parameter twice, sometimes.
-    check_parameters = accepted_parameters
-    for switch in accepted_parameters:
+    # Checking if a key exists in a defaultdict does weird things
+    check_parameters = dict(accepted_parameters)
+
+    for switch in check_parameters:
         for exclusive in parameters[switch]["exclusive_of"]:
-            if check_parameters[exclusive]:
-                error = switch + " should not be specified along with " + exclusive
-                error_list.append(error)
-                valid_parameters = False
-            else:
-                check_parameters.pop(exclusive)
+            try:
+                if check_parameters[exclusive]:
+                    error = switch + " should not be specified along with " + exclusive
+                    error_list.append(error)
+                    valid_parameters = False
+            except:
+                pass
 
 
     for switch in parameters:
@@ -139,12 +141,12 @@ def parse(parameters: dict) -> [dict, bool, list]:
             error_list.append(error)
 
 
-    for switch in accepted_parameters:
+    for switch in check_parameters:
         found_dependencies = True
         if parameters[switch]["depends"]:
             dependency_found = True
             for dependency in parameters[switch]["depends"]:
-                if dependency not in accepted_parameters:
+                if dependency not in check_parameters:
                     dependency_found = False
                 found_dependencies = dependency_found
 
@@ -165,7 +167,6 @@ def parse(parameters: dict) -> [dict, bool, list]:
                     accepted_parameters[switch] = parameters[switch]["default"]
 
 
-    error_list = dedupe_list(error_list)
     return accepted_parameters, valid_parameters, error_list
 
 

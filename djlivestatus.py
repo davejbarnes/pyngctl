@@ -205,7 +205,7 @@ def downtime_hosts(hostnames: list, begintime: int, endtime: int, comment: str,
             results[hostname] = result[1]
         else:
             all_good = False
-            results[hostname] = "host_not_found"
+            results[hostname] = "host_for_downtime_host_not_found"
     
     return all_good, results
 
@@ -239,7 +239,7 @@ def downtime_hostsservices(hostnames: list, services: list, begintime: int, endt
                     results[hostname + ";" + service] = result[1]
                 else:
                     all_good = False
-                    results[hostname + ";" + service] = "host_service_not_found"
+                    results[hostname + ";" + service] = "host_service_for_downtime_service_not_found"
         else:
             all_good = False
             results[hostname + ";failed_host_check_before_services"] = "host_for_services_not_found"

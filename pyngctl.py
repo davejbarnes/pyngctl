@@ -9,20 +9,26 @@ if not args.valid:
         print("\t",error)
     exit(1)
 
-
 if not args.rules_passed and args.djargs_config.enable_rules == True:
     print("\nParameter rules not met:")
     for errors in args.rule_errors:
         for error in errors:
             print("\t" + error)
-    exit(1)
-
+    #exit(1)
 
 if args.rules_partial:
     print("Rules partially failed:")
     for errors in args.rule_errors:
         for error in errors:
             print("\t" + error)
+
+
+def dedupe_list(input_list: list) -> list:
+    output_list = []
+    for item in sorted(input_list):
+        if item not in output_list:
+            output_list.append(item)
+    return output_list
 
 
 def find_mode() -> str:
@@ -35,6 +41,7 @@ def find_mode() -> str:
 
 
 def parameter_exists(param: str) -> bool:
+    """Check if a parameter (key) exists in args.validargs[], returns bool"""
     try:
         test = args.validargs[param]
         return True
@@ -43,20 +50,14 @@ def parameter_exists(param: str) -> bool:
 
 
 def combine_hosts():
+    """Combines all hosts specified by -h and hosts in all hostgroups specified by -H"""
     all_hosts = []
     if parameter_exists('-H'):
         all_hosts = all_hosts + ls.hosts_inhostgroups(args.validargs['-H'])
     if parameter_exists('-h'):
         all_hosts = all_hosts + args.validargs['-h']
+    all_hosts = dedupe_list(all_hosts)
     return all_hosts
-
-
-def dedupe_list(input_list: list) -> list:
-    output_list = []
-    for item in sorted(input_list):
-        if item not in output_list:
-            output_list.append(item)
-    return output_list
 
 
 def str_to_timestamp(datestring: str) -> int:
@@ -76,7 +77,8 @@ def end_time(start: int) -> int:
     if parameter_exists('-e'):
         if isinstance(args.validargs['-e'][0], int):
             return args.validargs['-e'][0]
-        return str_to_timestamp(args.validargs['-b'][0])
+        endtime = str_to_timestamp(args.validargs['-e'][0])
+        return int(endtime)
     add_time = 0
     if parameter_exists('-d'):
         add_time = add_time + int(args.validargs['-d'][0]) * 60
@@ -87,8 +89,37 @@ def end_time(start: int) -> int:
 
 
 mode = find_mode()
+
+
+if parameter_exists('-h') and not parameter_exists('-H'):
+    if len(args.validargs['-h']) == 1:
+        host_for_range = args.validargs['-h'][0]
+        try:
+            int(host_for_range[-2:])
+        except:
+            if parameter_exists('-x'):
+                range_hosts = []
+                range_start = int(args.validargs['-x'][0])
+                range_end = int(args.validargs['-y'][0])
+                if parameter_exists('-p'):
+                    if args.validargs['-p'][0] == 'odd':
+                        if range_start %2 == 0:
+                            range_start += 1
+
+                    if args.validargs['-p'][0] == 'even':
+                            if range_start %2 != 0:
+                                range_start += 1
+                    for number in range(range_start, range_end + 1, 2):
+                        range_hosts.append(host_for_range + str(number).zfill(2))
+                else:
+                    for number in range(range_start, range_end + 1):
+                        range_hosts.append(host_for_range + str(number).zfill(2))
+
+                print(range_hosts)
+                args.validargs['-h'] = range_hosts
+
 if parameter_exists('-h') or parameter_exists('-H'):
-    ng_hosts = dedupe_list(combine_hosts())
+    ng_hosts = combine_hosts()
 
 
 if mode == "down":
@@ -149,11 +180,11 @@ if mode == "ec":
 
 if result[0]:
     print("All commands completed successfully")
-    for hostname in result[1]:
+    for hostname in sorted(result[1]):
         print(hostname + ";" + result[1][hostname])
     exit(0)
 else:
     print("One or more commands failed")
-    for hostname in result[1]:
+    for hostname in sorted(result[1]):
         print(hostname, ";", result[1][hostname])
     exit(1)    
