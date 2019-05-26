@@ -45,8 +45,17 @@ parameters = {
 * `description`
 
    * description of the parameter
+   * a string
+   * required
 * `help`
+
+   * help to be displayed for the parameter
+   * a string
+   * required
 * `type`
+
+   * parameter type, one of: string, int, float, date, none
+   * default: none
 * `regex`
 * `delimiter`
 * `unique`
