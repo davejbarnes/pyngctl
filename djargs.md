@@ -9,6 +9,13 @@ This should allow the consumer to assume that valid parameters have been provide
 
 When imported it will import the configuration file and process the command line arguments and be ready to use without any function being called.
 
+Example:
+```python
+import djargs as args
+if args.valid:
+    ...stuff
+    
+```
 ## Conguration file
 #### Configuration Options
 * `enable_rules = bool` enables processing parameter rules
