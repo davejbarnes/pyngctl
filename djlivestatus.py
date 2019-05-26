@@ -2,7 +2,7 @@
 
 import conf.djlivestatus_config as config, socket, re, time
 debug=False  # set djlivestatus.debug = True in importing script to use
-debug_force_fail = True # set djlivestatus.debug_force_fail = True in importing script to use
+debug_force_fail = False # set djlivestatus.debug_force_fail = True in importing script to use
 test_mode = False # set djlivestatus.test_mode = True in importing script to use
 
 def dec_debug_true_false(func):
@@ -57,6 +57,7 @@ def nagios_command(command: str, confirm_query: list = [], expect_regex: str = "
     ls_command="COMMAND [" + str(utimestamp) + "] "
     ls_command += command
     ls_command += "\n "
+    print(ls_command)
     command_count = 0
     pattern = re.compile(expect_regex)
     while command_count <= retry_command and test_mode == False:

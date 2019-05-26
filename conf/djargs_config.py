@@ -4,14 +4,15 @@
 # valid 'fields' are:
 #
 #   description : string, description used in help REQUIRED
-#   regex : a regex pattern to match when type is "string", optional (default ".*" except for type 'date' - see below)
 #   type : string, one of "string, int, float, date", optional (default "none")
 #   delimiter: list of strings used to delimiter multiple values for the field, optional, (default no delimmiter)
+#   regex : a regex pattern to match when type is "string", optional (default ".*" except for type 'date' - see below)
+#   unique : bool, whether the parameter must be specified at most once. optional (default False)
+#   default: list, if parameter is not specified, use this value, optional.  Applied after dependancies and requirements etc, but before rules.
 #   required : bool, whether the parameter is required. optional (default False)
 #   required_unless : list, negate requirement if *one or more* other parameters are specified (implies 'required = true'), optional
 #   depends : list, parameters which must *all* also be specified with this one, optional
 #   exclusive_of : lits, parameters *any* of which must not also be specified, optional
-#   unique : bool, whether the parameter must be specified at most once. optional (default False)
 #   help : string, text used in extended help REQUIRED
 #   rules : list of strings, each of which will be evaluated as ("parameter value" rule), optional. See below.
 
@@ -26,7 +27,7 @@
 
 ##  edit below here  ##
 
-# default regex for date type parameters. setting "regex" field overrides for an individual parameter
+# default regex for date type parameters. setting "regex" field overrides for an individual date/time parameter
 # combinations of "yyyy-mm-dd", "dd/mm/yyy" hh:mm", "9am", "9pm" (space between date and time)
 # "last friday 12am", "11am tomorrow", "10:30 next weds" etc
 regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]) ([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]))|(([0-2]?[0-9]:[0-5][0-9]|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9]) (20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9]))|(20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/20[1-9][0-9])|[0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])|(([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?(( )?next |( )?last |( )?Next |( )?Last )?(monday( )?|Monday( )?|mon( )?|Mon( )?|tuesday( )?|Tuesday( )?|tue( )?|tues( )?|Tue( )?|Tues( )?|wednesday( )?|Wednesday( )?|wed( )?|Wed( )?|thursday( )?|Thursday( )?|thu( )?|thur( )?|Thu( )?|Thur( )?|friday( )?|Friday( )?|fri( )?|Fri( )?|saturday( )?|Saturday( )?|sat( )?|Sat( )?|sunday( )?|Sunday( )?|sun( )?|Sun( )?|week( )?)|([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?( ?tomorrow| ?Tomorrow| ?today| ?Today)( )?)([0-2]?[0-9]:[0-5][0-9]|[01]?[1-2][ap]m|[1-9][ap]m|1[0-2][ap]m|[0-2]?[0-9]:[0-5][0-9])?"
@@ -35,7 +36,8 @@ regex_date = "(((20[1-9][0-9](-|/)[01][0-9](-|/)[0-3][0-9]|[0-3][0-9]/[01][0-9]/
 #               rules make us of eval(), use only if you can trust this config file
 #               "rules": ['rm -rf ~']" or similar is not desirable!
 #               use: "< -a" would indicate the value of parameter should be less than the value of -a
-#               rules can only be applied to parameters of type int, float or date
+#               rules can only be applied to parameters of type int, float or date (which is confirmed before rules use eval() )
+#               for date/time rules to work you must enable date_convert as below
 enable_rules = True
 
 # Enabling date_convert will update validated parmeters of type "date" to a unix timestamp
@@ -69,6 +71,7 @@ parameters={
     "-b": {
         "description": "start date/time",
         "type": "date",
+        "default": ['Now'],
         "unique": True,
         "rules": ['< -e'],
         "exclusive_of": ["ack", "dn", "en", "dc", "ec"],
@@ -96,7 +99,7 @@ parameters={
         "description": "duration hours",
         "type": "float",
         "unique": True,
-        "exclusive_of": ['-e', "ack", "dn", "en", "dc", "ec"],
+        "exclusive_of": ['-e', 'ack', 'dn', 'en', 'dc', 'ec'],
         "required_unless": ['-e', '-d', "ack", "dn", "en", "dc", "ec"],
         "rules": ['> 0', '< 99'],
         "help": "for adding a downtime, the duration of the entry in hours"
@@ -106,6 +109,7 @@ parameters={
         "type": "string",
         "unique": True,
         "required_unless": ["dn", "en", "dc", "ec"],
+        "exclusive_of": ["dn", "en", "dc", "ec"],
         "help": "a comment is required when adding downtime entries or acknowledgements"
     },
     "-q": {
@@ -149,6 +153,18 @@ parameters={
         "exclusive_of": ["down", "dn", "en", "dc", "ack"],
         "help": "set mode to acknowledge"
     },
+    "-k": {
+        "description": "sticky",
+        "unique": True,
+        "help": "set acknowledgment 'sticky'",
+        "depends": ["ack"]
+    },
+    "-n": {
+        "description": "notify",
+        "unique": True,
+        "help": "notify on acknowledge",
+        "depends": ["ack"]
+    }
 }
 
 ##  edit above here  ##
@@ -208,3 +224,8 @@ for part in parameters:
         test = parameters[part]["rules"]
     except:
         parameters[part]["rules"] = []
+    
+    try:
+        test = parameters[part]["default"]
+    except:
+        parameters[part]["default"] = []

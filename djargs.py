@@ -29,13 +29,21 @@ def validate_type(pvalue: str, ptype: str) -> bool:
     return False
 
 
+def dedupe_list(input_list: list) -> list:
+    output_list = []
+    for item in sorted(input_list):
+        if item not in output_list:
+            output_list.append(item)
+    return output_list
+
+
 def custom_join(inlist: list, join_string: str) -> str:
     out_string = ''
     for item in inlist:
         if out_string == '':
             out_string += item
         else:
-            out_string += " " + join_string + " " + item
+            out_string += join_string + item
     return out_string
 
 
@@ -89,17 +97,21 @@ def parse(parameters: dict) -> [dict, bool, list]:
             error_list.append(error)
             valid_parameters = False
 
-        for exclusive in parameters[current_switch]["exclusive_of"]:
-            if accepted_parameters[exclusive]:
-                error = current_switch + " should not be specified along with " + exclusive
-                error_list.append(error)
-                valid_parameters = False
-            else:
-                accepted_parameters.pop(exclusive)
 
         for value in current_value.split("¬"):
             if value not in accepted_parameters[current_switch]:
                 accepted_parameters[current_switch].append(value)
+
+    # not sure why this matches 1 parameter twice, sometimes.
+    check_parameters = accepted_parameters
+    for switch in accepted_parameters:
+        for exclusive in parameters[switch]["exclusive_of"]:
+            if check_parameters[exclusive]:
+                error = switch + " should not be specified along with " + exclusive
+                error_list.append(error)
+                valid_parameters = False
+            else:
+                check_parameters.pop(exclusive)
 
 
     for switch in parameters:
@@ -121,12 +133,13 @@ def parse(parameters: dict) -> [dict, bool, list]:
         if not found_requirements:
             valid_parameters = False
             if parameters[switch]["required_unless"]:
-                error = switch + " (" + parameters[switch]["description"] + ") is required unless " + custom_join(parameters[switch]["required_unless"], 'or') + " is specified"
+                error = switch + " (" + parameters[switch]["description"] + ") is required unless one of \"" + custom_join(parameters[switch]["required_unless"], ', ') + "\" is specified"
             else:
                 error = switch + " (" + parameters[switch]["description"] + ") is required"
             error_list.append(error)
 
-    for switch in parameters:
+
+    for switch in accepted_parameters:
         found_dependencies = True
         if parameters[switch]["depends"]:
             dependency_found = True
@@ -140,6 +153,19 @@ def parse(parameters: dict) -> [dict, bool, list]:
                 error = switch + " (" + parameters[switch]["description"] + ") depends on " + custom_join(parameters[switch]["depends"], 'and') + " also being specified"
                 error_list.append(error)
 
+
+    for switch in parameters:
+        if switch not in accepted_parameters:
+            if parameters[switch]["default"] != []:
+                conflict = False
+                for exclusive in parameters[switch]["exclusive_of"]:
+                    if switch == exclusive:
+                        conflict = True
+                if not conflict:
+                    accepted_parameters[switch] = parameters[switch]["default"]
+
+
+    error_list = dedupe_list(error_list)
     return accepted_parameters, valid_parameters, error_list
 
 
@@ -150,9 +176,10 @@ def str_to_timestamp(datestring: str) -> int:
 
 def check_rules(switch, rules):
     new_rules = []
+    original_rules = []
     errors = []
     for rule in rules:
-        regex = "-[a-zA-Z]{1,}"
+        regex = "-{0,2}[a-zA-Z0-9]{1,}"
         pattern = re.compile(regex)
         matches = re.findall(pattern, rule)
         if matches == []:
@@ -161,22 +188,24 @@ def check_rules(switch, rules):
         for match in matches:
             try:
                 test = validargs[match][0]
-                rule = rule.replace(match, str(test))
+                newrule = rule.replace(match, str(test))
+                newrule = str(validargs[switch][0]) + " " + newrule
+                new_rules.append(newrule)
+                original_rules.append(rule)
             except:
                 errors.append("Can't find rule parameter " + match + " for rule '" + switch + " " + rule + "'")
-        rule = str(validargs[switch][0]) + " " + rule
-        new_rules.append(rule)
+
     
     if new_rules == []:
         return True, errors
-    for rule in new_rules:
+    for index, rule in enumerate(new_rules):
         #print("Testing rule", rule)
         try:
             test = eval(rule)
             #print("Test result", test)
             if not test:
                 #print("Logging fail")
-                errors.append("Failed rule:\t '" + switch + "\t" + rule + "'")
+                errors.append("Rule for '" + switch + "' (" + switch + " " + original_rules[index] + ") failed")
         except:
             errors.append("Unable to process rule '" + rule + "'")
             test = False
@@ -206,4 +235,8 @@ if djargs_config.enable_rules and valid:
             rulecheck = check_rules(switch, switch_rules)
             if not rulecheck[0]:
                 rules_passed = False
-            rule_errors.append(rulecheck[1])
+                rule_errors.append(rulecheck[1])
+
+rules_partial = False
+if rules_passed and (rule_errors != []):
+    rules_partial = True
