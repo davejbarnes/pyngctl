@@ -57,7 +57,7 @@ def nagios_command(command: str, confirm_query: list = [], expect_regex: str = "
     ls_command="COMMAND [" + str(utimestamp) + "] "
     ls_command += command
     ls_command += "\n "
-    print(ls_command)
+    #print(ls_command)
     command_count = 0
     pattern = re.compile(expect_regex)
     while command_count <= retry_command and test_mode == False:

@@ -29,14 +29,6 @@ def validate_type(pvalue: str, ptype: str) -> bool:
     return False
 
 
-# def dedupe_list(input_list: list) -> list:
-#     output_list = []
-#     for item in sorted(input_list):
-#         if item not in output_list:
-#             output_list.append(item)
-#     return output_list
-
-
 def custom_join(inlist: list, join_string: str) -> str:
     out_string = ''
     for item in inlist:
@@ -185,7 +177,6 @@ def check_rules(switch, rules):
         matches = re.findall(pattern, rule)
         if matches == []:
             pass
-            #errors.append("INFO: Didn't match any parameters for rule '" + rule + "'")
         for match in matches:
             try:
                 test = validargs[match][0]
@@ -200,12 +191,9 @@ def check_rules(switch, rules):
     if new_rules == []:
         return True, errors
     for index, rule in enumerate(new_rules):
-        #print("Testing rule", rule)
         try:
             test = eval(rule)
-            #print("Test result", test)
             if not test:
-                #print("Logging fail")
                 errors.append("Rule for '" + switch + "' (" + switch + " " + original_rules[index] + ") failed")
         except:
             errors.append("Unable to process rule '" + rule + "'")
