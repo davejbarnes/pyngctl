@@ -179,11 +179,12 @@ if mode == "ec":
 
 
 if result[0]:
+    if not parameter_exists('-q'):
+        print("All commands completed successfully")
     for hostname in sorted(result[1]):
         if parameter_exists('-q'):
             print(result[1][hostname])
         else:
-            print("All commands completed successfully")
             print(hostname + ";" + result[1][hostname])
     exit(0)
 else:
