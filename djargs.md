@@ -18,10 +18,12 @@ When imported it will import the configuration file and process the command line
 Parameters are specified as a Dictionary of Dictionaries, where the primary Dictionary's key is a parameter, and the secondary dictionary has keys specifying the parameter properties.
 
 Example:
-`parameters = {
+```python
+parameters = {
     "-t" : {
         "description": "time",
         "type": "date"
     }
-}`
+}
+```
 
