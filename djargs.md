@@ -14,7 +14,7 @@ Example:
 import djargs as args
 if args.valid:
     ...stuff
-    
+
 ```
 ## Conguration file
 #### Configuration Options
@@ -41,3 +41,16 @@ parameters = {
     }
 }
 ```
+##### Parameter properties
+* `description`
+* `help`
+* `type`
+* `regex`
+* `delimiter`
+* `unique`
+* `required`
+* `required_unless`
+* `exclusive_of`
+* `depends`
+* `rules`
+* `default`
