@@ -43,6 +43,7 @@ parameters = {
 ```
 ##### Parameter properties
 * `description`
+   description of the parameter
 * `help`
 * `type`
 * `regex`
