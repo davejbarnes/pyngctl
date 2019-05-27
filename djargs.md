@@ -24,7 +24,7 @@ if args.valid:
 #### Specifying parameters
 Parameters can be any form, such as '`-t`' or '`t`', but to provide a value they must be expressed as '`-t=value`' or '`t=value`'.  More specifically '=' is the delimiter between a parameter and it's value. '`-t value`' etc is not valid.
 
-Acceptable parameters are defined as a Dictionary of Dictionaries, where the primary Dictionary's key is a parameter, and the secondary dictionary has keys specifying the parameter properties.
+Acceptable parameters are defined as a Dictionary of Dictionaries, where the primary Dictionary's key is a parameter, and the secondary dictionary has keys specifying the parameter properties. It is **not** json.
 
 Example:
 ```python
