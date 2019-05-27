@@ -64,37 +64,51 @@ parameters = {
 
    * regex pattern which must be matched
    * default '.*'
+   * ```"regex": "regex experssion",```
+   * ```"regex": "^dc(1|2)",```
 
 * `delimiter`
 
    * list of allowed delimiters
+   * ```"delimiter": [","],```
 * `unique`
 
    * bool, whether a parameter may be only specified once
    * default: none
+   * ```"unique": True,```
 * `required`
 
    * bool, whether a parameter must be specified
    * default: none
+   * ```"required": True,```
 * `required_unless`
 
     * list of other parmaters which negate a parameter requirement
     * default: none
+    * ```"required_unless": ["-u"],```
 * `exclusive_of`
 
     * list of other parameters which must not be speficied with the current one
     * default: none
+    * ```"exclusive_of": ["-e"],```
 * `depends`
 
     * list of other parameters which must also be speficied with the current one
     * default: none
+    * ```"depends": ["-d"],```
 * `rules`
 
     * list of rules applied to the parameter
     * default: none
+    * ```"rules": ["> -m", "< 100"],```
 * `default`
 
     * default value for the parameter, respectful of other criteria
     * default: none
+    * ```"default": "default string value",```
+    * ```"default": 1,```
+    * ```"default": 3.141,```
+    * ```"default": "Now,```
+
 
 
