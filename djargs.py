@@ -206,8 +206,6 @@ __dj_args__ = parse(djargs_config.parameters)
 validargs = dict(__dj_args__[0])
 valid = bool(__dj_args__[1])
 errors = list(__dj_args__[2])
-rules_passed = True
-rule_errors = []
 
 if djargs_config.date_convert and valid:
     for switch in __dj_args__[0]:
@@ -215,6 +213,8 @@ if djargs_config.date_convert and valid:
             utime = int(str_to_timestamp(__dj_args__[0][switch][0]))
             __dj_args__[0][switch][0] = utime
 
+rules_passed = True
+rule_errors = []
 if djargs_config.enable_rules and valid:
     for switch in validargs:
         switch_rules = djargs_config.parameters[switch]["rules"]
