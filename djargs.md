@@ -149,6 +149,6 @@ Both `-b` and `-e` have the `"exclusive_of"` option set, so if any of the option
 Finally the `"rules"` option is set for both parameters.  In this case it relies on the configuration option `date_convert = True` which converts date/time parameters to unix timestamps which can then be compared.
 
 for `-e` we have the rule `'> -b'`
-   `-b` will be replaced with the value of `-b`
-   the value of `-e` will then be evaluated using the resulting rule
+   * `-b` will be replaced with the value of `-b`
+   * the value of `-e` will then be evaluated using the resulting rule
 
