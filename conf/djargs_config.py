@@ -93,7 +93,7 @@ parameters={
         "unique": True,
         "exclusive_of": ['-e', "ack", "dn", "en", "dc", "ec"],
         "required_unless": ['-e', '-D', "ack", "dn", "en", "dc", "ec"],
-        "rules": ['> 1'],
+        "rules": ['> 5'],
         "help": "for adding a downtime, the duration of the entry in minutes"
     },
     "-D": {

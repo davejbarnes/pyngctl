@@ -18,7 +18,7 @@ def validate_type(pvalue: str, ptype: str) -> bool:
 
     if ptype == 'date':
         try:
-            subprocess.check_output(['date', '-d ' + pvalue, '+%s'], stderr=subprocess.STDOUT)[0:-1]
+            test = subprocess.check_output(['date', '-d ' + pvalue, '+%s'], stderr=subprocess.STDOUT)[0:-1]
             return True
         except:
             return False
@@ -70,7 +70,7 @@ def parse(parameters: dict) -> [dict, bool, list]:
             pattern_match = pattern.match(str(value))
             try:
                 if pattern_match.group() != value:
-                    error = current_switch + " '" + value + "' : Pattern partially matches - check your regex?"
+                    error = current_switch + " '" + value + "' : Pattern does not match"
                     error_list.append(error)
                     valid_parameters = False
             except:
@@ -78,7 +78,6 @@ def parse(parameters: dict) -> [dict, bool, list]:
                 error_list.append(error)
                 valid_parameters = False
 
-        for value in current_value.split("¬"):
             if not validate_type(value, parameters[current_switch]["type"]):
                 error = current_switch + ' with value ' + value + ' is invalid'
                 error_list.append(error)
@@ -172,11 +171,13 @@ def check_rules(switch, rules):
     original_rules = []
     errors = []
     for rule in rules:
-        regex = "-{0,2}[a-zA-Z0-9]{1,}"
+        regex = "-{0,2}[a-zA-Z]{1,}"
         pattern = re.compile(regex)
         matches = re.findall(pattern, rule)
         if matches == []:
-            pass
+            newrule = str(validargs[switch][0]) + " " + rule
+            new_rules.append(newrule)
+            original_rules.append(rule)
         for match in matches:
             try:
                 test = validargs[match][0]
@@ -187,7 +188,6 @@ def check_rules(switch, rules):
             except:
                 errors.append("Can't find rule parameter " + match + " for rule '" + switch + " " + rule + "'")
 
-    
     if new_rules == []:
         return True, errors
     for index, rule in enumerate(new_rules):
@@ -203,18 +203,17 @@ def check_rules(switch, rules):
 
 __dj_args__ = parse(djargs_config.parameters)
 
-if djargs_config.date_convert:
-    for switch in __dj_args__[0]:
-        if djargs_config.parameters[switch]["type"] == "date":
-            utime = int(str_to_timestamp(__dj_args__[0][switch][0]))
-            __dj_args__[0][switch][0] = utime
-
-
 validargs = dict(__dj_args__[0])
 valid = bool(__dj_args__[1])
 errors = list(__dj_args__[2])
 rules_passed = True
 rule_errors = []
+
+if djargs_config.date_convert and valid:
+    for switch in __dj_args__[0]:
+        if djargs_config.parameters[switch]["type"] == "date":
+            utime = int(str_to_timestamp(__dj_args__[0][switch][0]))
+            __dj_args__[0][switch][0] = utime
 
 if djargs_config.enable_rules and valid:
     for switch in validargs:
