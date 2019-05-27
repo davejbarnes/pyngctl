@@ -102,6 +102,7 @@ parameters = {
 * `rules`
 
     * list of rules applied to the parameter
+    * only valid for types "int", "float" and "date" (date if `date_convert = True` is configured)
     * default: none
     * ```"rules": ["> -m", "< 100"],```
 * `default`
@@ -113,5 +114,41 @@ parameters = {
     * ```"default": 3.141,```
     * ```"default": "Now,```
 
+##### Examples
 
+Have a look at the djargs_config.py file in the conf dir in this repo, if you're familiar with Nagios it will help but isn't needed - it uses all the parameter options.
+
+Most of the options are hopefully obvious in their use, but here are a few examples from the pyngctl config explained for clarity.
+
+```python
+"-b": {
+        "description": "start date/time",
+        "type": "date",
+        "default": ['Now'],
+        "unique": True,
+        "rules": ['< -e'],
+        "exclusive_of": ["ack", "dn", "en", "dc", "ec"],
+        "help": "for adding a downtime, the start date/time of the entry"
+    },
+"-e": {
+        "description": "end date/time",
+        "type": "date",
+        "unique": True,
+        "exclusive_of": ['-d', '-D', "ack", "dn", "en", "dc", "ec"],
+        "required_unless": ['-D', '-d', "ack", "dn", "en", "dc", "ec"],
+        "rules": ['> -b'],
+        "help": "for adding a downtime, the end date/time of the entry"
+    },
+```
+Here we have two parameters, `-b` a begin date/time, and `-e` an end date/time.  They both have the required `"description"` and `"help"` options.  Their types are both `"date"` and as no `"regex"` is specified, the default `regex_date` will be used as part of validating the user input.  Both parmaters are `"unique"` so may only be specified once on the command line.
+
+`-b` is not required, but it has a default value of `["Now"]` which is a valid date/time string.  However it won't be applied if it would contradict other options, such as the following.
+
+Both `-b` and `-e` have the `"exclusive_of"` option set, so if any of the options listed there are also present validation will fail.  `-e` also has the `"required_unless"` option set.  This means it must be specified unless any one of parameters listed is specified.
+
+Finally the `"rules"` option is set for both parameters.  In this case it relies on the configuration option `date_convert = True` which converts date/time parameters to unix timestamps which can then be compared.
+
+for `-e` we have the rule `'> -b'`
+   `-b` will be replaced with the value of `-b`
+   the value of `-e` will then be evaluated using the resulting rule
 
