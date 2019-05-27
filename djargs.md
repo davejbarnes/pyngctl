@@ -101,7 +101,7 @@ parameters = {
     * ```"depends": ["-d"],```
 * `rules`
 
-    * list of rules applied to the parameter
+    * list of rules applied to the **user provided value** of the parameter
     * default: none
     * ```"rules": ["> -m", "< 100"],```
 * `default`
