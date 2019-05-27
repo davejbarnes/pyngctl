@@ -46,6 +46,7 @@ parameters = {
 
    * string, description of the parameter
    * required
+   * ```"description": "a string",```
 * `help`
 
    * string, help to be displayed for the parameter
@@ -90,3 +91,5 @@ parameters = {
 
     * default value for the parameter, respectful of other criteria
     * default: none
+
+
