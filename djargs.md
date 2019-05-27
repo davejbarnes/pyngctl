@@ -46,11 +46,13 @@ parameters = {
 
    * string, description of the parameter
    * required
+   * default: none
    * ```"description": "a string",```
 * `help`
 
    * string, help to be displayed for the parameter
    * required
+   * default: none
    * ```"help": "a string",```
 * `type`
 
@@ -70,16 +72,17 @@ parameters = {
 * `delimiter`
 
    * list of allowed delimiters
+   * default: none
    * ```"delimiter": [","],```
 * `unique`
 
    * bool, whether a parameter may be only specified once
-   * default: none
+   * default: False
    * ```"unique": True,```
 * `required`
 
    * bool, whether a parameter must be specified
-   * default: none
+   * default: False
    * ```"required": True,```
 * `required_unless`
 
