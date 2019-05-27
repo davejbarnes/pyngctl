@@ -64,12 +64,29 @@ parameters = {
    * list of allowed delimiters
 * `unique`
 
-   * bool, default False
+   * bool, whether a parameter may be only specified once
+   * default: none
 * `required`
 
-   * bool, default False
+   * bool, whether a parameter must be specified
+   * default: none
 * `required_unless`
+
+    * list of other parmaters which negate a parameter requirement
+    * default: none
 * `exclusive_of`
+
+    * list of other parameters which must not be speficied with the current one
+    * default: none
 * `depends`
+
+    * list of other parameters which must also be speficied with the current one
+    * default: none
 * `rules`
+
+    * list of rules applied to the parameter
+    * default: none
 * `default`
+
+    * default value for the parameter, respectful of other criteria
+    * default: none
