@@ -64,7 +64,7 @@ parameters = {
 
    * regex pattern which must be matched
    * default '.*'
-   * ```"regex": "regex experssion",```
+   * ```"regex": "regex expression",```
    * ```"regex": "^dc(1|2)",```
 
 * `delimiter`
