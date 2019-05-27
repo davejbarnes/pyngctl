@@ -51,10 +51,15 @@ parameters = {
 
    * string, help to be displayed for the parameter
    * required
+   * ```"help": "a string",```
 * `type`
 
    * parameter type, one of: string, int, float, date, none
    * default: none
+   * ```"type": "string",```
+   * ```"type": "int",```
+   * ```"type": "float",```
+   * ```"type": "date",```
 * `regex`
 
    * regex pattern which must be matched
