@@ -12,7 +12,7 @@ def dec_debug_true_false(func):
             if debug_force_fail:
                 return False
             return True
-        return wrapper
+    return wrapper
 
 
 def livestatus_query(query: list = ["GET status"]) -> str:

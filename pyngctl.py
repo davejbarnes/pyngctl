@@ -4,7 +4,7 @@ import djargs as args, djlivestatus as ls, subprocess
 ls.test_mode = True
 
 if not args.valid:
-    print("Invalid parameters specified:")
+    print("\nInvalid parameters specified:")
     for error in sorted(args.errors):
         print("\t",error)
     exit(1)
