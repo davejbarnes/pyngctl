@@ -43,7 +43,7 @@ def find_mode() -> str:
 def parameter_exists(param: str) -> bool:
     """Check if a parameter (key) exists in args.validargs[], returns bool"""
     try:
-        test = args.validargs[param]
+        _test = args.validargs[param]
         return True
     except:
         return False
@@ -191,4 +191,4 @@ else:
     print("One or more commands failed")
     for hostname in sorted(result[1]):
         print(hostname + ";" + result[1][hostname])
-    exit(1)    
+    exit(1)
